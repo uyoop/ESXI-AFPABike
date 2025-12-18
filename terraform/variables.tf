@@ -1,15 +1,14 @@
-variable "vsphere_user" {
-  type        = string
-  description = "Utilisateur vSphere/ESXi (ex: root)"
-}
+variable "vsphere_user" {}
+variable "vsphere_password" { sensitive = true }
+variable "vsphere_server" {}
 
-variable "vsphere_password" {
-  type        = string
-  sensitive   = true
-  description = "Mot de passe vSphere/ESXi"
-}
+variable "datacenter" {}
+variable "cluster" {}
+variable "datastore" {}
+variable "network_name" {}
 
-variable "vsphere_server" {
-  type        = string
-  description = "Adresse du serveur vSphere/ESXi (ex: 10.20.69.8 ou 10.20.69.200)"
-}
+variable "template_name" {}
+variable "vm_name" {}
+variable "vm_cpu" { default = 2 }
+variable "vm_memory" { default = 4096 }
+variable "vm_disk_gb" { default = 20 }

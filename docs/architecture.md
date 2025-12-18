@@ -12,7 +12,7 @@ Le flux de déploiement suit une chaîne automatisée : provisionnement de resso
 
 ### Couche Virtualisation
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                     VMware vCenter 6.7                   │
 │  (Gestion centralisée des ESXi et ressources)            │
@@ -51,15 +51,16 @@ Le flux de déploiement suit une chaîne automatisée : provisionnement de resso
 
 ### Services Docker Compose
 
-| Service | Rôle | Image |
-|---------|------|-------|
-| Apache + PHP | Web server & runtime | php:8.2-apache |
-| MySQL | Base de données | mysql:8.0 |
-| AFPABike | Application web | Code PHP |
+| Service       | Rôle                  | Image          |
+|---------------|-----------------------|----------------|
+| Apache + PHP  | Web server & runtime  | php:8.2-apache |
+| MySQL         | Base de données       | mysql:8.0      |
+| AFPABike      | Application web       | Code PHP       |
 
 ### Base de Données
 
 Crebas_AfpaBike_v1-1_with_values.sql contient :
+
 - Tables métier : velo, marque, piece, location, contrat, entretien, formation
 - Données de test
 

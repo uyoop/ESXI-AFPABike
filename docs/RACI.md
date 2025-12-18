@@ -13,6 +13,7 @@ Répartition des responsabilités pour le **périmètre ESXi/vSphere + Terraform
 | Christopher | Documentation & Git | Doc, versioning, coordination |
 
 ## Légende
+
 - R = Responsible (fait)
 - A = Accountable (valide)
 - C = Consulted (consulté)
@@ -93,10 +94,12 @@ Répartition des responsabilités pour le **périmètre ESXi/vSphere + Terraform
 | Alertes incidents / escalade | R | R | A |
 
 ## Workflow de validation
+
 - Développement (R) → Tests individuels (R) → Point équipe → Validation finale (A) → Documentation (R/C) → Git commit/push (R)
 - Checkpoints: infra (James R / Christopher A), Ansible (Yanis R / Christopher A), push GitHub (Christopher A)
 
 ## KPIs
+
 | KPI | A | R |
 |-----|---|---|
 | Infra ESXi opérationnelle | James | Yanis, Christopher |
@@ -108,6 +111,7 @@ Répartition des responsabilités pour le **périmètre ESXi/vSphere + Terraform
 | Repo GitHub clean/versionné | Christopher | Yanis, James |
 
 ## Gestion du document
+
 - Responsable des mises à jour : Christopher (A), consultation Yanis & James (C)
 - Version : 1.1 — Périmètre ESXi
 - Historique : 18/12/2025 création v1.0 ; 18/12/2025 ajustement A unique v1.1

@@ -11,9 +11,10 @@
     update_cache: yes
 
 - name: Ajouter la clé GPG officielle de Docker
-  command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
   args:
     creates: /usr/share/keyrings/docker-archive-keyring.gpg
+
 
 - name: Ajouter le repository Docker
   copy:
@@ -44,16 +45,13 @@
     group: "{{ ansible_user }}"
     mode: '0755'
 
-- name: Copier l'application afpabike sur la VM
-  copy:
-    src: "{{ app_src }}/"
+- name: Copier afpabike avec rsync
+  ansible.posix.synchronize:
+    src: "{{ role_path }}/files/afpabike/"
     dest: "{{ app_dest }}/"
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0755'
+    recursive: yes
 
-- name: Lancer Docker Compose
-  community.docker.docker_compose:
-    project_src: "{{ app_dest }}"
-    state: present
-    restarted: yes
+- name: Lancer Docker Compose via commande
+  command: sudo docker compose up -d
+  args:
+    chdir: "{{ app_dest }}"

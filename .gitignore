@@ -1,3 +1,6 @@
+vagrantfile
+.vagrant
+partage_vagrant
 # Terraform
 *.tfstate
 *.tfstate.*

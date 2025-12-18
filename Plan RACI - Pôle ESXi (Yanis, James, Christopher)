@@ -1,0 +1,127 @@
+
+---
+
+## Checklist de validation (Demain 15h)
+
+### Infrastructure ESXi
+- [ ] ESXi installé et accessible
+- [ ] vCenter configuré
+- [ ] Cluster HA fonctionnel
+- [ ] Datastores montés
+- [ ] Réseau configuré (vSwitches + VLANs)
+
+### Terraform
+- [ ] Code Terraform complet
+- [ ] `terraform plan` sans erreur
+- [ ] `terraform apply` réussi
+- [ ] 3 VMs créées automatiquement
+- [ ] Ressources allouées correctement
+
+### Ansible
+- [ ] `ansible.cfg` et `inventory.ini` configurés
+- [ ] Playbooks fonctionnels
+- [ ] Configuration VMs réussie
+- [ ] Tests idempotence OK
+
+### Docker
+- [ ] Docker installé sur toutes les VMs
+- [ ] Docker Swarm cluster actif
+- [ ] 1 stack déployée
+- [ ] Services accessibles
+
+### Documentation
+- [ ] Repository GitHub structuré
+- [ ] README.md complet
+- [ ] Documentation architecture
+- [ ] Procédures opérationnelles
+- [ ] Tout le code versionné
+
+### Présentation
+- [ ] Slides préparés
+- [ ] Démonstrations testées
+- [ ] Rôles répartis
+- [ ] Timing respecté (30 min max)
+
+---
+
+## Workflow Git accéléré
+
+| Timing | Action | Responsable |
+|--------|--------|-------------|
+| Aujourd'hui 9h | Création repo + structure | Christopher |
+| Aujourd'hui 13h | Premier commit Terraform | James |
+| Aujourd'hui 15h | Premier commit Ansible | Yanis |
+| Demain 9h | Commits Docker | Yanis |
+| Demain 12h | Commits finaux code | Tous |
+| Demain 14h | Finalisation docs | Christopher |
+| Demain 16h | Tag version `v1.0` | Christopher |
+
+---
+
+## Répartition horaire par personne (14h total)
+
+### Yanis - Ansible & Docker
+- **Aujourd'hui 10h30-12h** : Setup Ansible (1h30)
+- **Aujourd'hui 13h-15h** : Playbooks Ansible base (2h)
+- **Aujourd'hui 15h-17h** : Configuration VMs via Ansible (2h)
+- **Demain 9h-10h30** : Installation Docker (1h30)
+- **Demain 10h30-12h** : Docker Swarm cluster (1h30)
+- **Demain 13h-14h30** : Tests + corrections (1h30)
+- **Demain 14h30-16h** : Préparation présentation (1h30)
+
+### James - Terraform & VMs
+- **Aujourd'hui 9h-10h30** : Installation ESXi + vCenter (1h30)
+- **Aujourd'hui 10h30-12h** : Datastores + réseau (1h30)
+- **Aujourd'hui 13h-15h** : Code Terraform complet (2h)
+- **Aujourd'hui 15h-17h** : Provisionnement VMs (2h)
+- **Demain 9h-10h30** : Configuration HA + DRS (1h30)
+- **Demain 10h30-12h** : Tests infrastructure (1h30)
+- **Demain 13h-14h30** : Tests + corrections (1h30)
+- **Demain 14h30-16h** : Préparation présentation (1h30)
+
+### Christopher - GitHub & Documentation
+- **Aujourd'hui 9h-10h30** : Création repository + structure (1h30)
+- **Aujourd'hui 10h30-12h** : Documentation structure projet (1h30)
+- **Aujourd'hui 13h-15h** : Documentation Terraform (2h)
+- **Aujourd'hui 15h-17h** : Documentation continue + versioning (2h)
+- **Demain 9h-10h30** : Documentation technique (1h30)
+- **Demain 10h30-12h** : Finalisation documentation (1h30)
+- **Demain 13h-14h30** : README + schémas + procédures (1h30)
+- **Demain 14h30-16h** : Préparation présentation + finalisation repo (1h30)
+
+---
+
+## Points de synchronisation OBLIGATOIRES
+
+- **Aujourd'hui 12h** : Point avant pause déjeuner (10 min) - Tous
+- **Aujourd'hui 15h** : Point milieu après-midi (10 min) - Tous
+- **Demain 10h30** : Point matinal (10 min) - Tous
+- **Demain 13h** : Point post-déjeuner (10 min) - Tous
+- **Demain 14h30** : Validation finale avant présentation (15 min) - Tous
+
+---
+
+## Légende RACI
+
+- **R (Responsible)** : Réalise l'activité
+- **A (Accountable)** : Responsable final, valide
+- **C (Consulted)** : Consulté pour expertise
+- **I (Informed)** : Informé des résultats
+
+---
+
+## KPIs de réussite
+
+- ✅ Infrastructure ESXi opérationnelle
+- ✅ Code Terraform fonctionnel (VMs provisionnées)
+- ✅ Playbooks Ansible opérationnels
+- ✅ Docker Swarm déployé avec 1 stack
+- ✅ Repository GitHub complet et documenté
+- ✅ Présentation réussie dans les temps
+
+---
+
+**Date de création** : 18 décembre 2025 - 14h10  
+**Deadline absolue** : 19 décembre 2025 - 17h00
+
+🎯 **Objectif** : Tout terminer pour la présentation de demain 16h30 !

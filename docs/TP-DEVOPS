@@ -1,0 +1,38 @@
+Mission Devops
+## Contexte de mission
+Ce document est l'énoncé du TP. Trois équipes se sont constituées et le pôle **ESXi/vSphere** (James, Yanis, Christopher) a pris en charge l’infrastructure VMware.
+
+Le périmètre actuel du repository couvre le déploiement sur **ESXi/vSphere**. Les volets **Proxmox** et **Azure** sont hors périmètre immédiat et resteront « À venir » jusqu’à nouvel avancement. Les indications Proxmox/Azure ci-dessous servent de contexte et seront documentées ultérieurement lorsque ces travaux progresseront.
+
+Mesdames et messieurs DevOps_2025 
+Vous venez d'être tous recrutés par une entreprise qui à l'ambition de louer des vélos partout dans le monde !
+ 
+l'entreprise souhaite pouvoir travailler "localement" sur une infra "on premise" pour tout ce qui est intégration continue, dev / tests, et publier (déploiement continu)  l'appli dans un environnement cloud ( azure ).
+ 
+l'application afpabike utilise apache / mariadb et doit pouvoir fonctionner en environnement docker pour s'abstraire de la couche matériel/os sous-jacente et fonctionner dans les mêmes conditions partout.
+ 
+L'infra locale est constituée de 3 noeuds proxmox ( + 1 serveur de stockage commun + 1 serveur pour sauvegardes/backup en cours d'ajout au datacenter local )
+N'ayant pas encore parfaitement décidé de la solution hyperviseur choisie, l'entreprise à également un POC vSphere entièrement virtualisé ( 2 noeuds ESXi, un vCenter, un stockage SAN ).
+ 
+Pour la fourniture de machines virtuelles, la solution terraform devra être employée, quel que soit l'environnement :
+proxmox https://blog.stephane-robert.info/docs/virtualiser/type1/proxmox/terraform/  
+vCenter https://registry.terraform.io/providers/hashicorp/vsphere/latest/docs (attention a trouver un provider compatible avec une version 6.7 )
+également sur azure.
+ 
+Vous devez donc : 
+Créer le cluster proxmox avec les 3 noeuds. ( https://10.250.250.1:8006   .2 .3 ) et permettre un provisionnement de VMs via terraform, provisionnement de python et d'un utilisateur ansible ( + ssh ) et l'installation d'un environnement docker via ansible.
+( Ce serait bien une VM avec gitlab + runner, ainsi qu'un harbor dans cet environnement ^^, mais ce n'est que du bonus actuellement )
+ 
+Le cluster d'hyperviseurs esxi est monté et accessible via vCenter: de même provisionnement via terraform, créer un user ansible python) + ssh + provisionner un environnement docker via ansible.
+ 
+Sur Azure, idem, pouvoir provisionner 1 VM avec terraform, un user ansible (python) + ssh, et un environnement docker.
+ 
+Ultérieurement un pipeline CI/CD nous permettra de passer de l'environnement local (dev/staging) à azure (prod).
+ 
+ 
+Pour effectuer ce travail, vous travaillez sur des environnements qui sont "commun" aussi, sans organisation/communication de votre part, des effets de bords se feront sentir et risque d'aboutir à des dysfonctionnement.
+Vous devez tous vous organiser en équipes ( pas forcément vos voisins ), et établir la répartition des taches et des rôles, ainsi que le mode de communication avant interventions/modifications sur les infras.
+ 
+L'ensemble doit être document.
+Provisionner des VM avec Terraform | Stéphane ROBERT
+Découvrez comment utiliser Terraform pour optimiser la gestion de Proxmox, rendant l'automatisation et la configuration plus efficaces et simples.

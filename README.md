@@ -8,8 +8,8 @@ Projet de déploiement automatisé de l'application **AFPABike** (système de lo
 
 - ✅ Provisionnement automatisé de VMs via **Terraform**
 - ✅ Configuration et déploiement automatisés via **Ansible**
-- ✅ Conteneurisation de l'application avec **Docker**
-- ✅ Orchestration avec **Docker Swarm**
+- ✅ Conteneurisation de l'application avec **Docker Compose**
+- ✅ Déploiement applicatif automatisé
 - ✅ Documentation complète et versioning Git
 
 ---
@@ -30,18 +30,18 @@ Projet de déploiement automatisé de l'application **AFPABike** (système de lo
 
 ### Infrastructure
 
-- **Hyperviseur** : VMware ESXi 6.7 (2 nœuds)
-- **Gestion** : vCenter Server 6.7
+- **Hyperviseur** : VMware ESXi 6.7 + vCenter Server 6.7
 - **OS VMs** : Ubuntu 24.04 LTS
-- **Stockage** : SAN partagé
+- **Stockage** : SAN partagé (datastore1)
 - **Réseau** : vSwitches avec VLANs
+- **VMs provisionnées** : 1 VM (lab-ubuntu-2404)
 
 ### Stack Applicative
 
-- **Web Server** : Apache 2.4
-- **Base de données** : MariaDB 10.x
+- **Web Server / Runtime** : php:8.2-apache
+- **Base de données** : MySQL 8.0
 - **Conteneurisation** : Docker CE
-- **Orchestration** : Docker Swarm
+- **Orchestration** : Docker Compose
 - **Application** : AFPABike (PHP/MySQL)
 
 ### Outils DevOps
@@ -59,33 +59,35 @@ Projet de déploiement automatisé de l'application **AFPABike** (système de lo
 
 ```text
 ESXI-AFPABike/
-├── terraform/                  # Infrastructure as Code
-│   └── esxi/                  # Configuration vSphere
-│       ├── main.tf            # Ressources principales
-│       ├── variables.tf       # Variables
-│       ├── outputs.tf         # Sorties
-│       └── terraform.tfvars   # Valeurs (non versionné)
+├── terraform/                   # Infrastructure as Code (Terraform)
+│   ├── main.tf                 # Ressources vSphere (VM clonée depuis template)
+│   └── variables.tf            # Variables vSphere (user/pass/server + datacenter/cluster/datastore/network/template/vm specs)
 │
-├── ansible/                   # Configuration Management
-│   ├── ansible.cfg           # Configuration Ansible
-│   ├── inventori.ini         # Inventaire des hôtes
-│   ├── playbooks/            # Playbooks principaux
-│   │   └── site.yml         # Playbook principal
-│   └── roles/                # Rôles Ansible
+├── roles/                       # Rôles Ansible
+│   └── afpabike_docker/        # Rôle : déploiement AFPABike + Docker
+│       ├── tasks/
+│       │   └── main.yml        # Tâches (installer Docker, déployer Compose)
+│       ├── files/
+│       │   └── afpabike/       # Fichiers de l'application (docker-compose.yml, app/)
+│       └── defaults/
+│           └── main.yml        # Variables par défaut (app_dest, app_src)
 │
-├── roles/                    # Rôles pour l'application
-│   └── afpabike_docker/     # Déploiement AFPABike
-│       ├── tasks/           # Tâches Ansible
-│       ├── files/           # Fichiers de l'app
-│       └── defaults/        # Variables par défaut
+├── ansible.cfg                  # Configuration Ansible
+├── inventory.ini                # Inventaire des hôtes (hosts vCenter)
+├── deploy_afpabike.yml          # Playbook principal
 │
-├── docs/                    # Documentation
-│   ├── architecture.md     # Architecture technique
-│   ├── deployment.md       # Guide de déploiement
-│   ├── troubleshooting.md  # Résolution de problèmes
-│   └── RACI.md            # Matrice RACI
+├── docs/                        # Documentation
+│   ├── architecture.md         # Architecture technique
+│   ├── deployment.md           # Guide de déploiement
+│   ├── troubleshooting.md      # Résolution de problèmes
+│   ├── RACI.md                # Matrice RACI
+│   └── TP-DEVOPS              # Énoncé du TP
 │
-└── README.md              # Ce fichier
+├── ansible.cfg                 # Fichier de config Ansible
+├── inventory.ini               # Inventaire Ansible
+├── deploy_afpabike.yml         # Playbook de déploiement
+├── README.md                   # Ce fichier
+└── .gitignore
 ```
 
 ---
@@ -104,19 +106,35 @@ git --version         # ≥ 2.0
 
 **Accès nécessaires :**
 
-- vCenter Server (<https://vcenter.local>)
+- vCenter Server (ex: 10.20.69.200)
 - Credentials vSphere (user/password)
-- Accès SSH aux VMs provisionnées
-- Template Ubuntu 24.04 dans vCenter
+- Datastore et réseau configurés dans vCenter
+- **Template vSphere Ubuntu Server** déjà disponible (ex: 24.04, NIC vmxnet3) avec la bonne datastore/network
+- Accès SSH à la VM provisionnée (user `ansible`)
 
-### Étape 1 : Configuration Terraform
+### Étape 1 : Configuration et application Terraform
 
 ```bash
-cd terraform/esxi/
+cd terraform/
 
-# Copier et éditer les variables
-cp terraform.tfvars.example terraform.tfvars
-nano terraform.tfvars
+# Créer le fichier de variables
+# À adapter avec tes credentials vSphere
+cat > terraform.tfvars <<EOF
+vsphere_user     = "root"
+vsphere_password = "ton_password"
+vsphere_server   = "10.20.69.200"
+
+datacenter    = "DCDevops"
+cluster       = "ClusterDevops"
+datastore     = "datastore1"
+network_name  = "VM Network"
+
+template_name = "ubuntu-24.04-template"
+vm_name       = "lab-ubuntu-2404"
+vm_cpu        = 2
+vm_memory     = 4096
+vm_disk_gb    = 20
+EOF
 
 # Initialiser Terraform
 terraform init
@@ -128,41 +146,38 @@ terraform plan
 terraform apply
 ```
 
-**Résultat attendu :** 3 VMs Ubuntu créées et démarrées dans vCenter.
+**Résultat attendu :** 1 VM Ubuntu `lab-ubuntu-2404` créée et démarrée dans vCenter.
 
-### Étape 2 : Configuration Ansible
+### Étape 2 : Configuration Ansible et déploiement
 
 ```bash
-cd ../../
+cd ..
 
-# Vérifier l'inventaire
-cat inventori.ini
+# Adapter l'inventaire avec l'IP réelle de la VM
+nano inventory.ini
 
-# Tester la connectivité
+# Exemple:
+# [vcenter_vms]
+# vm-afpabike ansible_host=10.20.69.20
+
+# Tester la connectivité SSH
 ansible all -m ping
 
 # Déployer la configuration complète
-ansible-playbook ansible/playbooks/site.yml
-
-# Ou déploiement étape par étape
-ansible-playbook ansible/playbooks/site.yml --tags "docker"
-ansible-playbook ansible/playbooks/site.yml --tags "swarm"
-ansible-playbook ansible/playbooks/site.yml --tags "afpabike"
+ansible-playbook deploy_afpabike.yml
 ```
 
-**Résultat attendu :** Docker installé, Swarm configuré, application déployée.
+**Résultat attendu :** Docker installé, application AFPABike déployée via `docker compose up -d`.
 
 ### Étape 3 : Validation
 
 ```bash
-# Vérifier Docker sur les VMs
-ansible all -m shell -a "docker --version"
+# Vérifier Docker sur la VM
+ssh ansible@<VM_IP>
+docker ps
 
-# Vérifier Docker Swarm
-ansible managers -m shell -a "docker node ls"
-
-# Vérifier les services déployés
-ansible managers -m shell -a "docker service ls"
+# Vérifier les logs de l'app
+docker compose logs -f
 
 # Tester l'application
 curl http://<VM_IP>/afpabike
@@ -199,39 +214,36 @@ terraform validate
 # Exécuter une tâche ad-hoc
 ansible all -m shell -a "uptime"
 
-# Exécuter un playbook en mode check (dry-run)
-ansible-playbook playbooks/site.yml --check
+# Exécuter le playbook en mode check (dry-run)
+ansible-playbook deploy_afpabike.yml --check
 
 # Exécuter avec verbosité
-ansible-playbook playbooks/site.yml -vvv
+ansible-playbook deploy_afpabike.yml -vvv
 
-# Exécuter uniquement certains tags
-ansible-playbook playbooks/site.yml --tags "docker,swarm"
-
-# Lister les tâches
-ansible-playbook playbooks/site.yml --list-tasks
+# Voir les tâches du playbook
+ansible-playbook deploy_afpabike.yml --list-tasks
 ```
 
-### Commandes Docker Swarm
+### Commandes Docker Compose Utiles
 
 ```bash
-# Se connecter au manager
-ssh ansible@<manager-ip>
+# Se connecter à la VM
+ssh ansible@<VM_IP>
 
-# Voir l'état du cluster
-docker node ls
+# Voir l'état des conteneurs
+docker ps
 
-# Voir les services
-docker service ls
+# Voir les logs de l'application
+docker compose logs -f
 
-# Voir les logs d'un service
-docker service logs afpabike_web
+# Redémarrer l'application
+docker compose restart
 
-# Scaler un service
-docker service scale afpabike_web=3
+# Arrêter l'application
+docker compose down
 
-# Mettre à jour un service
-docker service update afpabike_web
+# Démarrer l'application
+docker compose up -d
 ```
 
 ---
@@ -251,56 +263,76 @@ docker service update afpabike_web
 
 ### Terraform
 
-#### Erreur : Provider incompatible
+#### Erreur : Provider vsphere incompatible
 
 ```bash
-# Utiliser une version compatible
+# Le code utilise provider vsphere ~> 2.4 (vSphere 6.7)
 terraform {
   required_providers {
     vsphere = {
       source  = "hashicorp/vsphere"
-      version = "2.2.0"  # Compatible vSphere 6.7
+      version = "~> 2.4"
     }
   }
 }
 ```
 
-#### Erreur : Template introuvable
+#### Erreur : template introuvable
 
 ```bash
-# Vérifier le nom exact dans vCenter
-# Mettre à jour dans terraform.tfvars
+# Vérifier que template_name existe dans le bon datacenter/cluster/datastore
+# et qu'il est visible par le compte vSphere.
 ```
 
 ### Ansible
 
-#### Erreur : SSH Connection refused
+#### Erreur : SSH connection refused
 
 ```bash
-# Attendre que cloud-init termine (2-3 min)
-# Vérifier la connectivité
+# L'ISO n'a pas cloud-init, attendre le démarrage (~5-10 min)
+# Vérifier que la VM a une IP (check dans vCenter)
 ping <VM_IP>
-ssh ansible@<VM_IP>
+
+# Tester SSH manuellement
+ssh -v ansible@<VM_IP>
+
+# Si permission denied, vérifier les credentials Terraform
 ```
 
-#### Erreur : Permission denied sur Docker
+#### Erreur : ansible.posix.synchronize
 
 ```bash
-# Se déconnecter et reconnecter pour charger le groupe docker
-exit
-ssh ansible@<VM_IP>
+# Installer rsync sur la VM si absent (Ubuntu minimal)
+# Vérifier que l'utilisateur ansible existe et que la clé publique est en place.
 ```
 
 ### Docker
 
-#### Erreur : Container ne démarre pas
+#### Erreur : Docker Compose ne démarre pas
 
 ```bash
 # Voir les logs détaillés
-docker service ps afpabike_web --no-trunc
+cd /home/ansible/afpabike
+docker compose logs
 
-# Inspecter le service
-docker service inspect afpabike_web
+# Vérifier les variables d'env ou la config
+cat docker-compose.yml
+
+# Redémarrer
+docker compose restart
+```
+
+#### Erreur : Container AFPABike ne répond pas
+
+```bash
+# Vérifier la présence de MariaDB
+docker ps | grep mariadb
+
+# Voir logs Apache
+docker compose logs apache
+
+# Vérifier la connectivité BD
+docker compose exec php ping mariadb
 ```
 
 > 🔍 Plus de solutions : [Guide de troubleshooting](docs/troubleshooting.md)
@@ -353,10 +385,10 @@ git push origin feature/nom-fonctionnalite
 | Indicateur | Cible | Statut |
 | ---------- | ----- | ------ |
 | Infrastructure ESXi opérationnelle | 100% | ✅ |
-| VMs provisionnées automatiquement | 3 VMs | ✅ |
+| VM provisionnée automatiquement | 1 VM | ✅ |
 | Code Terraform fonctionnel | `apply` OK | ✅ |
-| Playbooks Ansible opérationnels | Tests OK | ✅ |
-| Docker Swarm déployé | Cluster actif | ✅ |
+| Playbook Ansible opérationnel | Exécution OK | ✅ |
+| Docker Compose déployé | Containers UP | ✅ |
 | Stack AFPABike déployée | Services UP | ✅ |
 | Documentation complète | 100% | ✅ |
 | Repository GitHub structuré | Clean | ✅ |
@@ -379,8 +411,8 @@ git push origin feature/nom-fonctionnalite
 
 ### Phase 3 : Conteneurisation ✅
 
-- [x] Docker installé sur toutes les VMs
-- [x] Docker Swarm cluster actif
+- [x] Docker installé sur la VM
+- [x] Docker Compose configuré
 - [x] Stack AFPABike déployée
 
 ### Phase 4 : Documentation ✅
@@ -390,18 +422,24 @@ git push origin feature/nom-fonctionnalite
 - [x] Matrice RACI
 - [x] Guide de troubleshooting
 
-### Phase 5 : CI/CD 🚧 (À venir)
+### Phase 5 : CI/CD � (À venir)
 
-- [ ] GitLab + Runner
+- [ ] GitLab + Runner (cluster Proxmox)
 - [ ] Harbor Registry
 - [ ] Pipeline CI/CD
 - [ ] Déploiement vers Azure
 
-### Phase 6 : Monitoring 📅 (Planifié)
+### Phase 6 : Monitoring 📅 (À venir)
 
 - [ ] Prometheus + Grafana
 - [ ] Logs centralisés
 - [ ] Alerting
+
+### Phase 7 : Évolution multi-environnements 📅 (À venir)
+
+- [ ] Cluster Proxmox avec déploiement Terraform/Ansible
+- [ ] Déploiement Azure avec Terraform
+- [ ] Orchestration Docker Swarm (optionnel)
 
 ---
 
@@ -442,11 +480,14 @@ Projet pédagogique AFPA - Formation DevOps 2025
 
 ### Version 1.0 - 18 décembre 2025
 
-- ✅ Infrastructure ESXi déployée
-- ✅ Terraform opérationnel
-- ✅ Ansible opérationnel
-- ✅ Docker Swarm déployé
-- ✅ Documentation complète
+- ✅ Infrastructure ESXi + vCenter configurée
+- ✅ Terraform IaC pour provisionnement VM vSphere
+- ✅ Ansible pour configuration et déploiement
+- ✅ Docker Compose pour application AFPABike
+- ✅ Documentation technique complète
+
+**Périmètre actuel :** Déploiement Pôle ESXi/vSphere  
+**À venir :** Proxmox, Azure, CI/CD, Monitoring
 
 ---
 

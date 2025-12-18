@@ -2,6 +2,7 @@
 - name: Déployer l'application AFPABike
   hosts: vcenter_vms
   become: yes
+  become_method: sudo
 
   roles:
     - afpabike_docker

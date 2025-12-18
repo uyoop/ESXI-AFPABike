@@ -1,3 +1,37 @@
 vagrantfile
 .vagrant
 partage_vagrant
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+crash.log
+
+# Ansible
+*.retry
+ansible/vm_ip.txt
+*.vault
+
+# Credentials
+**/credentials.yml
+**/secrets.yml
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
